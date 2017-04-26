@@ -3,6 +3,7 @@
 //
 #define CATCH_CONFIG_MAIN
 #include "catch.h"
+#include "armadillo"
 
 #include "../directedGraph/Graph.h"
 
@@ -100,12 +101,14 @@ TEST_CASE("Perform topological sort", "[graph]") {
 
 TEST_CASE("Test Bayesian operations", "[graph]") {
 
-    struct edgeData {
+    /*struct edgeData {
         double originProbability;
         double targetProbability;
-    };
+    };*/
 
-    Graph<std::string, edgeData> graph;
+    //Graph<std::string, edgeData> graph;
+
+    Graph<std::string, arma::mat> graph;
 
     graph.add("T");
 
@@ -116,18 +119,23 @@ TEST_CASE("Test Bayesian operations", "[graph]") {
     graph.add("E4");
 
     // add edge for T = 0
-    graph.connect("T", "E0", {0.75, 0.95}); // probability that E0 = 1 if T = 1
+    graph.connect("T", "E0", { {0.25, 0.55},    // probability that E0 = 1 if T = 0
+                               {0.75, 0.95} }); // probability that E0 = 1 if T = 1
 
     // add edge for T = 0
-    graph.connect("T", "E1", {0.75, 0.95}); // probability that E1 = 1 if T = 1
+    graph.connect("T", "E1", { {0.25, 0.60},    // probability that E1 = 1 if T = 0
+                               {0.75, 0.95} }); // probability that E1 = 1 if T = 1
 
     // add edge for T = 0
-    graph.connect("T", "E2", {0.75, 0.42}); // probability that E2 = 1 if T = 1
+    graph.connect("T", "E2", { {0.25, 0.24},    // probability that E2 = 1 if T = 0
+                               {0.75, 0.42} }); // probability that E2 = 1 if T = 1
 
     // add edge for T = 0
-    graph.connect("T", "E3", {0.75, 0.72}); // probability that E3 = 1 if T = 1
+    graph.connect("T", "E3", { {0.25, 0.13},    // probability that E3 = 1 if T = 0
+                               {0.75, 0.72} }); // probability that E3 = 1 if T = 1
 
     // add edge for T = 0
-    graph.connect("T", "E4", {0.75, 0.66}); // probability that E4 = 1 if T = 1
+    graph.connect("T", "E4", { {0.25, 0.62},    // probability that E4 = 1 if T = 0
+                               {0.75, 0.66} }); // probability that E4 = 1 if T = 1
 
 }
