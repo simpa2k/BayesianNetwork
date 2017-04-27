@@ -14,8 +14,8 @@ class BayesianNetwork {
 
 public:
     bool add(std::string);
-    bool connect(std::string, std::string, int, double, arma::rowvec);
-    arma::rowvec get(std::map<std::string, int>);
+    bool record(std::string, std::string, int, int, double);
+    arma::mat get(std::string, std::map<std::string, int>);
 
 };
 

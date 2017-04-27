@@ -118,9 +118,14 @@ TEST_CASE("Test Bayesian operations", "[graph]") {
     graph.add("E3");
     graph.add("E4");
 
-    // add edge for T = 0
-    graph.connect("T", "E0", { {0.25, 0.55},    // probability that E0 = 1 if T = 0
-                               {0.75, 0.95} }); // probability that E0 = 1 if T = 1
+    /*
+     * Rows represent E states and columns T states. E states must add up to one.
+     * Values represent E probability given that T takes a certain value, equal
+     * to the index of the value given.
+     */
+    graph.connect("T", "E0", { {0.33, 0.40},    // probability that E0 = 0 if T = 0 or T = 1
+                               {0.33, 0.25},    // probability that E0 = 1 if T = 0 or T = 1
+                               {0.34, 0.35} }); // probability that E0 = 2 if T = 0 or T = 1
 
     // add edge for T = 0
     graph.connect("T", "E1", { {0.25, 0.60},    // probability that E1 = 1 if T = 0

@@ -39,11 +39,13 @@ class Graph {
 
     std::map<T, node<T, W>> nodes;
     bool areConnected(node<T, W> first, node<T, W> second);
+    typename std::vector<edge<T, W>>::iterator getConnection(node<T, W> first, node<T, W> second);
 
 public:
 
     bool add(T data);
     bool connect(T node1, T node2, W weight);
+    W* getWeight(T node1, T node2);
     std::vector<T> topologicalSort();
 
 };
@@ -131,7 +133,37 @@ bool Graph<T, W>::areConnected(node<T, W> first, node<T, W> second) {
     });
 
     return it != edges.end();
+    /*edge<T, W> edge = getConnection(first, second);
+    return edge != first.edges.end();*/
 
 }
+
+template<typename T, typename W>
+typename std::vector<edge<T, W>>::iterator Graph<T, W>::getConnection(node<T, W> first, node<T, W> second) {
+
+    std::vector<edge<T, W>> &edges = first.edges;
+    auto it = std::find_if(edges.begin(), edges.end(), [&second](const edge<T, W>& edge) {
+        return edge.target->data == second.data;
+    });
+
+    return it;
+
+}
+
+template<typename T, typename W>
+W* Graph<T, W>::getWeight(T node1, T node2) {
+
+    typename std::map<T, node<T, W>>::iterator existing1 = nodes.find(node1);
+    typename std::map<T, node<T, W>>::iterator existing2 = nodes.find(node2);
+
+    if (existing1 == nodes.end() || existing2 == nodes.end() || !areConnected(existing1->second, existing2->second)) {
+        return NULL;
+    }
+
+    typename std::vector<edge<T, W>>::iterator edgeIter = getConnection(existing1->second, existing2->second);
+    return &edgeIter->weight;
+
+}
+
 
 #endif //GRAPH_GRAPH_H
