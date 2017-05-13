@@ -1,40 +1,32 @@
 #include <iostream>
+#include "armadillo"
 #include "directedGraph/Graph.h"
+#include "bayesNet/BayesianNetwork.h"
 
-/*int main() {
+/*void addFactors(BayesianNetwork* bayesNet) {
 
-    Graph<std::string, double> graph;
+    bayesNet->add("T");
 
-    graph.add("1");
-    graph.add("2");
-    graph.add("3");
-    graph.add("4");
-    graph.add("5");
-    graph.add("6");
-    graph.add("7");
+    bayesNet->add("E0");
+    bayesNet->add("E1");
+    bayesNet->add("E2");
+    bayesNet->add("E3");
+    bayesNet->add("E4");
 
-    graph.connect("1", "2", 1.0);
-    graph.connect("1", "3", 1.0);
+}
 
-    graph.connect("2", "4", 1.0);
-    graph.connect("2", "5", 1.0);
+int main() {
 
-    graph.connect("3", "6", 1.0);
+    BayesianNetwork* bayesNet = new BayesianNetwork();
+    addFactors(bayesNet);
 
-    graph.connect("4", "3", 1.0);
-    graph.connect("4", "6", 1.0);
-    graph.connect("4", "7", 1.0);
+    bayesNet->record("T", "E0", 0, 0, 0.33);
 
-    graph.connect("5", "4", 1.0);
-    graph.connect("5", "7", 1.0);
+    std::string hidden = "T";
+    std::map<std::string, arma::uword> query = {{"E0", 0}};
+    arma::rowvec correct = {0.25, 0.55};
 
-    graph.connect("7", "6", 1.0);
-
-    std::vector<std::string> topologicalOrdering = graph.topologicalSort();
-
-    for (auto const& it : topologicalOrdering) {
-        std::cout << it << std::endl;
-    }
+    arma::mat result = bayesNet->get(hidden, query);
 
     return 0;
 }*/

@@ -9,6 +9,7 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
+#include <memory>
 
 template <typename T, typename W>
 struct edge;
@@ -46,6 +47,7 @@ public:
     bool add(T data);
     bool connect(T node1, T node2, W weight);
     W* getWeight(T node1, T node2);
+    void getWeight(T node1, T node2, W &target);
     std::vector<T> topologicalSort();
 
 };
@@ -74,11 +76,31 @@ bool Graph<T, W>::connect(T node1, T node2, W weight) {
     typename std::map<T, node<T, W>>::iterator existing1 = nodes.find(node1);
     typename std::map<T, node<T, W>>::iterator existing2 = nodes.find(node2);
 
-    if (existing1 == nodes.end() || existing2 == nodes.end() || areConnected(existing1->second, existing2->second)) {
+    /*if (existing1 == nodes.end() || existing2 == nodes.end() || areConnected(existing1->second, existing2->second)) {
+        return false;
+    }*/
+    if (existing1 == nodes.end() || existing2 == nodes.end()) {
         return false;
     }
 
-    edge<T, W>* connection = new edge<T, W>;
+    std::vector<edge<T, W>> &edges = existing1->second.edges;
+
+    edge<T, W>* connection;
+
+    for (auto iter = edges.begin(); iter != edges.end(); ++iter) {
+
+        if (iter->target->data == existing2->second.data) {
+
+            connection = &(*iter);
+            connection->weight = weight;
+
+            return true;
+
+        }
+    }
+
+    connection = new edge<T, W>;
+
     connection->target = &existing2->second;
     connection->weight = weight;
 
@@ -142,6 +164,7 @@ template<typename T, typename W>
 typename std::vector<edge<T, W>>::iterator Graph<T, W>::getConnection(node<T, W> first, node<T, W> second) {
 
     std::vector<edge<T, W>> &edges = first.edges;
+
     auto it = std::find_if(edges.begin(), edges.end(), [&second](const edge<T, W>& edge) {
         return edge.target->data == second.data;
     });
@@ -153,6 +176,8 @@ typename std::vector<edge<T, W>>::iterator Graph<T, W>::getConnection(node<T, W>
 template<typename T, typename W>
 W* Graph<T, W>::getWeight(T node1, T node2) {
 
+    W* weight = NULL;
+
     typename std::map<T, node<T, W>>::iterator existing1 = nodes.find(node1);
     typename std::map<T, node<T, W>>::iterator existing2 = nodes.find(node2);
 
@@ -160,8 +185,36 @@ W* Graph<T, W>::getWeight(T node1, T node2) {
         return NULL;
     }
 
+    weight = new W();
+
+    std::vector<edge<T, W>> &edges = existing1->second.edges;
+
+    for (auto iter = edges.begin(); iter != edges.end(); ++iter) {
+
+        edge<T, W> edge = *iter;
+        if (edge.target->data == existing2->second.data) {
+            *weight = edge.weight;
+            break;
+        }
+    }
+
+    return weight;
+
+}
+
+template<typename T, typename W>
+void Graph<T, W>::getWeight(T node1, T node2, W& target) {
+
+    typename std::map<T, node<T, W>>::iterator existing1 = nodes.find(node1);
+    typename std::map<T, node<T, W>>::iterator existing2 = nodes.find(node2);
+
+    if (existing1 == nodes.end() || existing2 == nodes.end() || !areConnected(existing1->second, existing2->second)) {
+        return;
+    }
+
     typename std::vector<edge<T, W>>::iterator edgeIter = getConnection(existing1->second, existing2->second);
-    return &edgeIter->weight;
+
+    target = edgeIter->weight;
 
 }
 
