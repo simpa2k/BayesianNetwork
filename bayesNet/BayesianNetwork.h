@@ -7,10 +7,12 @@
 
 #include <armadillo>
 #include "../directedGraph/Graph.h"
+#include "brain/Brain.h"
 
 class BayesianNetwork {
 
     Graph<std::string, arma::mat> graph;
+    Brain brain = Brain(400);
 
 public:
     bool add(std::string);

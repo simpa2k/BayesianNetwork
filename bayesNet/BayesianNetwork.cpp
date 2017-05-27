@@ -47,4 +47,3 @@ arma::mat BayesianNetwork::get(std::string hidden, std::map<std::string, arma::u
     return currentStates;
 
 }
-
