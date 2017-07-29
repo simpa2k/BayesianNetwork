@@ -18,11 +18,19 @@ class BayesianNetwork {
 public:
     BayesianNetwork();
     BayesianNetwork(arma::uword);
+
+    arma::uword getNumStates() const;
+
     bool add(std::string);
     bool record(std::string, std::string, arma::uword, arma::uword, double);
+
     arma::mat get(std::string, std::map<std::string, arma::uword>);
-    std::vector<int> simulateHiddenData(const std::vector<double>, const int);
-    std::map<std::string, std::vector<int>> simulateVisibleData(const std::string, const std::vector<int>, const int);
+
+    arma::rowvec simulateHiddenData(std::vector<double>, int);
+    std::map<std::string, std::vector<int>> simulateVisibleData(std::string, const arma::rowvec, int);
+
+    arma::rowvec computeThetaHidden(arma::rowvec dataHidden);
+    arma::mat computeThetaVisible(arma::rowvec dataHidden, std::map<std::string, std::vector<int>> dataVisible);
 
 };
 

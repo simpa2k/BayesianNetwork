@@ -76,9 +76,10 @@ TEST_CASE("Simulate data according to custom distributions", "[bayesNet") {
     BayesianNetwork* bayesNet = new BayesianNetwork(3);
 
     const std::vector<double> THETA_HIDDEN = {0.25, 0.60, 0.15};
-    const int SAMPLES = 10;
+    const int SAMPLES = 1000;
 
-    std::vector<int> dataHidden = bayesNet->simulateHiddenData(THETA_HIDDEN, SAMPLES);
+    //std::vector<int> dataHidden = bayesNet->simulateHiddenData(THETA_HIDDEN, SAMPLES);
+    arma::rowvec dataHidden = bayesNet->simulateHiddenData(THETA_HIDDEN, SAMPLES);
 
     SECTION("Simulate hidden data") {
 
@@ -90,6 +91,12 @@ TEST_CASE("Simulate data according to custom distributions", "[bayesNet") {
 
         std::cout << std::endl;
 
+        SECTION("Compute theta hidden") {
+
+            arma::rowvec thetaHidden = bayesNet->computeThetaHidden(dataHidden);
+            REQUIRE(thetaHidden.size() == bayesNet->getNumStates());
+
+        }
     }
 
     SECTION("Simulate visible data") {
@@ -114,39 +121,10 @@ TEST_CASE("Simulate data according to custom distributions", "[bayesNet") {
 
         std::map<std::string, std::vector<int>> visibleData = bayesNet->simulateVisibleData("T", dataHidden, SAMPLES);
 
-        for (auto &&item : visibleData) {
-
-            std::cout << item.first << ": " << std::endl;
-
-            for (auto &&second : item.second) {
-                std::cout << second << ", ";
-            }
-
-            std::cout << std::endl;
-
+        SECTION("Compute theta visible") {
+            arma::mat thetaVisible = bayesNet->computeThetaVisible(dataHidden, visibleData);
         }
     }
-}
-
-TEST_CASE("Generate visible data according to custom distribution", "[bayesNet") {
-
-    /*const int SAMPLES = 10;
-    arma::mat thetaVisible = { {0.33, 0.40},
-                               {0.75, 0.60} };
-
-    std::mt19937 eng(std::time(0));
-
-    thetaVisible.each_row([&eng] (arma::rowvec row) {
-
-        std::discrete_distribution<> dist(row.begin(), row.end());
-
-        for (int i = 0; i < SAMPLES; ++i) {
-            std::cout << dist(eng) << ", ";
-        }
-
-        std::cout << "" << std::endl;
-
-    });*/
 }
 
 /*TEST_CASE("TEST") {

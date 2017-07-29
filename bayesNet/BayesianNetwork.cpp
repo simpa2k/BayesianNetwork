@@ -49,22 +49,30 @@ arma::mat BayesianNetwork::get(std::string hidden, std::map<std::string, arma::u
 
 }
 
-std::vector<int> BayesianNetwork::simulateHiddenData(const std::vector<double> thetaHidden, const int samples) {
+//std::vector<int> BayesianNetwork::simulateHiddenData(const std::vector<double> thetaHidden, const int samples) {
+arma::rowvec BayesianNetwork::simulateHiddenData(const std::vector<double> thetaHidden, const int samples) {
 
     std::discrete_distribution<> dist(thetaHidden.begin(), thetaHidden.end());
     std::mt19937 eng(std::time(0));
 
-    std::vector<int> dataHidden;
+    //std::vector<int> dataHidden;
+    arma::rowvec dataHidden(samples);
 
     for (int i = 0; i < samples; ++i) {
-        dataHidden.push_back(dist(eng));
+
+        //dataHidden.push_back(dist(eng));
+        dataHidden(i) = dist(eng);
+
     }
 
     return dataHidden;
 
 }
 
-std::map<std::string, std::vector<int>> BayesianNetwork::simulateVisibleData(const std::string hiddenNode, const std::vector<int> hiddenData, const int samples) {
+std::map<std::string, std::vector<int>> BayesianNetwork::simulateVisibleData(const std::string hiddenNode,
+                                                                             //const std::vector<int> hiddenData,
+                                                                             const arma::rowvec hiddenData,
+                                                                             const int samples) {
 
     std::map<std::string, arma::mat> weights = graph.getWeights(hiddenNode);
     std::map<std::string, std::vector<int>> dataVisible;
@@ -93,5 +101,23 @@ std::map<std::string, std::vector<int>> BayesianNetwork::simulateVisibleData(con
     }
 
     return dataVisible;
+}
+
+arma::uword BayesianNetwork::getNumStates() const {
+    return numStates;
+}
+
+arma::rowvec BayesianNetwork::computeThetaHidden(const arma::rowvec dataHidden) {
+
+    arma::urowvec histogram = arma::hist(dataHidden, numStates);
+    arma::rowvec convertedHistogram = arma::conv_to<arma::rowvec>::from(histogram);
+
+    return convertedHistogram / dataHidden.size();
+
+}
+
+arma::mat
+BayesianNetwork::computeThetaVisible(arma::rowvec dataHidden, std::map<std::string, std::vector<int>> dataVisible) {
+    return arma::mat();
 }
 
