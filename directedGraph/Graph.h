@@ -48,6 +48,7 @@ public:
     bool connect(T node1, T node2, W weight);
     W* getWeight(T node1, T node2);
     void getWeight(T node1, T node2, W &target);
+    std::map<T, W> getWeights(T node);
     std::vector<T> topologicalSort();
 
 };
@@ -218,5 +219,19 @@ void Graph<T, W>::getWeight(T node1, T node2, W& target) {
 
 }
 
+template<typename T, typename W>
+std::map<T, W> Graph<T, W>::getWeights(T nodeKey) {
+
+    typename std::map<T, node<T, W>>::iterator existing = nodes.find(nodeKey);
+
+    std::map<T, W> weights;
+
+    std::for_each(existing->second.edges.begin(), existing->second.edges.end(), [&weights] (edge<T, W> currentEdge) {
+        weights.insert(std::pair<T, W>(currentEdge.target->data, currentEdge.weight));
+    });
+
+    return weights;
+
+};
 
 #endif //GRAPH_GRAPH_H

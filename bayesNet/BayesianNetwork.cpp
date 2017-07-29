@@ -5,7 +5,8 @@
 #include "armadillo"
 #include "BayesianNetwork.h"
 
-const arma::uword NUM_STATES = 2; // Solve this in a more elegant way.
+BayesianNetwork::BayesianNetwork() = default;
+BayesianNetwork::BayesianNetwork(arma::uword states) : numStates{states} {}
 
 bool BayesianNetwork::add(std::string factorName) {
     return graph.add(factorName);
@@ -19,7 +20,7 @@ bool BayesianNetwork::record(std::string factor1, std::string factor2, arma::uwo
     if (probabilities != NULL) {
         values = *probabilities;
     } else {
-        values = arma::mat(NUM_STATES, NUM_STATES, arma::fill::zeros);
+        values = arma::mat(numStates, numStates, arma::fill::zeros);
     }
 
     values(factor2State, factor1State) = factor2Probability;
@@ -47,3 +48,50 @@ arma::mat BayesianNetwork::get(std::string hidden, std::map<std::string, arma::u
     return currentStates;
 
 }
+
+std::vector<int> BayesianNetwork::simulateHiddenData(const std::vector<double> thetaHidden, const int samples) {
+
+    std::discrete_distribution<> dist(thetaHidden.begin(), thetaHidden.end());
+    std::mt19937 eng(std::time(0));
+
+    std::vector<int> dataHidden;
+
+    for (int i = 0; i < samples; ++i) {
+        dataHidden.push_back(dist(eng));
+    }
+
+    return dataHidden;
+
+}
+
+std::map<std::string, std::vector<int>> BayesianNetwork::simulateVisibleData(const std::string hiddenNode, const std::vector<int> hiddenData, const int samples) {
+
+    std::map<std::string, arma::mat> weights = graph.getWeights(hiddenNode);
+    std::map<std::string, std::vector<int>> dataVisible;
+
+    for (auto &&dataPoint : hiddenData) {
+
+        for (auto &&node : weights) {
+
+            arma::colvec col = node.second.col(dataPoint);
+
+            std::mt19937 eng(std::time(0));
+
+            std::discrete_distribution<> dist(col.begin(), col.end());
+            std::vector<int> simulatedDataPoints;
+
+            for (int i = 0; i < samples; ++i) {
+
+                int simulatedDataPoint = dist(eng);
+                simulatedDataPoints.push_back(simulatedDataPoint);
+
+            }
+
+            dataVisible.insert(std::pair<std::string, std::vector<int>>(node.first, simulatedDataPoints));
+
+        }
+    }
+
+    return dataVisible;
+}
+
