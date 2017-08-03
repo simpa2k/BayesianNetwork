@@ -75,21 +75,14 @@ TEST_CASE("Simulate data according to custom distributions", "[bayesNet") {
 
     BayesianNetwork* bayesNet = new BayesianNetwork(3);
 
-    const std::vector<double> THETA_HIDDEN = {0.25, 0.60, 0.15};
-    const int SAMPLES = 1000;
+    const std::vector<double> THETA_HIDDEN = {0.25, 0.40, 0.35};
+    const int SAMPLES = 10000;
 
-    //std::vector<int> dataHidden = bayesNet->simulateHiddenData(THETA_HIDDEN, SAMPLES);
     arma::rowvec dataHidden = bayesNet->simulateHiddenData(THETA_HIDDEN, SAMPLES);
 
     SECTION("Simulate hidden data") {
 
         REQUIRE(dataHidden.size() == SAMPLES);
-
-        for (auto iter = dataHidden.begin(); iter != dataHidden.end(); ++iter) {
-            //std::cout << (iter != dataHidden.begin() ? ", " : "") << *iter;
-        }
-
-        std::cout << std::endl;
 
         SECTION("Compute theta hidden") {
 
@@ -103,6 +96,12 @@ TEST_CASE("Simulate data according to custom distributions", "[bayesNet") {
 
         addFactors(bayesNet);
 
+        /*
+         * E0:
+         * 0.33 0.40 0.50
+         * 0.33 0.25 0.20
+         * 0.34 0.35 0.30
+         */
         REQUIRE(bayesNet->record("T", "E0", 0, 0, 0.33));
         REQUIRE(bayesNet->record("T", "E0", 0, 1, 0.33));
         REQUIRE(bayesNet->record("T", "E0", 0, 2, 0.34));
@@ -111,6 +110,16 @@ TEST_CASE("Simulate data according to custom distributions", "[bayesNet") {
         REQUIRE(bayesNet->record("T", "E0", 1, 1, 0.25));
         REQUIRE(bayesNet->record("T", "E0", 1, 2, 0.35));
 
+        REQUIRE(bayesNet->record("T", "E0", 2, 0, 0.50));
+        REQUIRE(bayesNet->record("T", "E0", 2, 1, 0.20));
+        REQUIRE(bayesNet->record("T", "E0", 2, 2, 0.30));
+
+        /*
+         * E1:
+         * 0.30 0.60 0.70
+         * 0.65 0.20 0.10
+         * 0.05 0.20 0.20
+         */
         REQUIRE(bayesNet->record("T", "E1", 0, 0, 0.30));
         REQUIRE(bayesNet->record("T", "E1", 0, 1, 0.65));
         REQUIRE(bayesNet->record("T", "E1", 0, 2, 0.05));
@@ -119,19 +128,19 @@ TEST_CASE("Simulate data according to custom distributions", "[bayesNet") {
         REQUIRE(bayesNet->record("T", "E1", 1, 1, 0.20));
         REQUIRE(bayesNet->record("T", "E1", 1, 2, 0.20));
 
-        std::map<std::string, std::vector<int>> visibleData = bayesNet->simulateVisibleData("T", dataHidden, SAMPLES);
+        REQUIRE(bayesNet->record("T", "E1", 2, 0, 0.70));
+        REQUIRE(bayesNet->record("T", "E1", 2, 1, 0.10));
+        REQUIRE(bayesNet->record("T", "E1", 2, 2, 0.20));
+
+        std::map<std::string, arma::rowvec> visibleData = bayesNet->simulateVisibleData("T", dataHidden, SAMPLES);
 
         SECTION("Compute theta visible") {
-            arma::mat thetaVisible = bayesNet->computeThetaVisible(dataHidden, visibleData);
+            std::map<std::string, arma::mat> thetaVisible = bayesNet->computeThetaVisible(dataHidden, visibleData);
+
+            for (auto &&item : thetaVisible) {
+                std::cout << item.first << std::endl;
+                std::cout << item.second << std::endl;
+            }
         }
     }
 }
-
-/*TEST_CASE("TEST") {
-
-    arma::mat A = arma::mat(10, 10, arma::fill::zeros);
-    A(9, 9) = 123.0;
-
-    std::cout << A << std::endl;
-
-}*/

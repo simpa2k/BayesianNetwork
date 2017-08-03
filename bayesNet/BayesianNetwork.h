@@ -8,6 +8,7 @@
 #include <armadillo>
 #include "../directedGraph/Graph.h"
 #include "brain/Brain.h"
+#include <ctime>
 
 class BayesianNetwork {
 
@@ -27,10 +28,10 @@ public:
     arma::mat get(std::string, std::map<std::string, arma::uword>);
 
     arma::rowvec simulateHiddenData(std::vector<double>, int);
-    std::map<std::string, std::vector<int>> simulateVisibleData(std::string, const arma::rowvec, int);
+    std::map<std::string, arma::rowvec> simulateVisibleData(std::string, arma::rowvec, int);
 
     arma::rowvec computeThetaHidden(arma::rowvec dataHidden);
-    arma::mat computeThetaVisible(arma::rowvec dataHidden, std::map<std::string, std::vector<int>> dataVisible);
+    std::map<std::string, arma::mat> computeThetaVisible(arma::rowvec dataHidden, std::map<std::string, arma::rowvec> dataVisible);
 
 };
 

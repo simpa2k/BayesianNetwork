@@ -13,9 +13,9 @@
     bayesNet->add("E3");
     bayesNet->add("E4");
 
-}
+}*/
 
-int main() {
+/*int main() {
 
     BayesianNetwork* bayesNet = new BayesianNetwork();
     addFactors(bayesNet);
