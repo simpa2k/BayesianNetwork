@@ -136,11 +136,6 @@ TEST_CASE("Simulate data according to custom distributions", "[bayesNet") {
 
         SECTION("Compute theta visible") {
             std::map<std::string, arma::mat> thetaVisible = bayesNet->computeThetaVisible(dataHidden, visibleData);
-
-            for (auto &&item : thetaVisible) {
-                std::cout << item.first << std::endl;
-                std::cout << item.second << std::endl;
-            }
         }
     }
 }

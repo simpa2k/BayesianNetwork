@@ -10,6 +10,14 @@
 BayesianNetwork::BayesianNetwork() = default;
 BayesianNetwork::BayesianNetwork(arma::uword states) : numStates{states} {}
 
+/**
+ * Method for adding a node to the network.
+ *
+ * @param factorName A descriptive name for the factor.
+ * @return A boolean value indicating whether or not the
+ * factor was added. False will be returned if there already
+ * is a factor with the provided name in the network.
+ */
 bool BayesianNetwork::add(std::string factorName) {
     return graph.add(factorName);
 }
@@ -34,6 +42,18 @@ bool BayesianNetwork::record(std::string factor1, std::string factor2, arma::uwo
 
 }
 
+/**
+ * Method for getting the probabilities for all the states of a hidden node,
+ * given that a series of visible nodes take certain values. The thought is
+ * that this will be used when there has just been measurements of visible
+ * nodes and the relevant hidden probabilities, given those measurements,
+ * have to be established.
+ *
+ * @param hidden The name of the hidden node.
+ * @param visibleStates A mapping of visible node keys to their states. This
+ * will most likely be recently measured states.
+ * @return A matrix of probabilities where each row represents a visible node.
+ */
 arma::mat BayesianNetwork::get(std::string hidden, std::map<std::string, arma::uword> visibleStates) {
 
     arma::mat currentStates;
@@ -78,20 +98,20 @@ arma::rowvec BayesianNetwork::simulateHiddenData(const std::vector<double> theta
 }
 
 /**
- * Utility method to simulate visible data based. Requires data measured from a
- * hidden node to determine which probability distribution should be used to
- * generate the visible data.
+ * Utility method to simulate visible data based on a set of hidden data.
+ * Requires data measured from a hidden node to determine which probability
+ * distribution should be used to generate the visible data.
  *
  * @param hiddenNode The key required to access the hidden node.
  * @param hiddenData The data of the hidden node.
  * @param samples The number of data points to generate.
- * @return A mapping of visible node keys to sets of generated data.
+ * @return A mapping of visible node keys to lists of generated data.
  */
 std::map<std::string, arma::rowvec> BayesianNetwork::simulateVisibleData(const std::string hiddenNode,
                                                                          const arma::rowvec hiddenData,
                                                                          const int samples) {
 
-    std::map<std::string, arma::mat> weights = graph.getWeights(hiddenNode); // Get all visible nodes that the hidden node is associated with.
+    std::map<std::string, arma::mat> weights = graph.getWeights(hiddenNode); // Get all visible nodes that the hidden node is associated with, and their weights.
     std::map<std::string, arma::rowvec> dataVisible;
 
     std::random_device rd;
@@ -116,7 +136,7 @@ std::map<std::string, arma::rowvec> BayesianNetwork::simulateVisibleData(const s
             std::discrete_distribution<> dist(col.begin(), col.end()); // Create a distribution from the set of probabilities contained in the column by providing an iterator.
 
             int simulatedDataPoint = dist(eng); // Generate the value.
-            simulatedDataPoints(i) = simulatedDataPoint; // Put the generated visible value in the exact same position as the hidden value. This positional correspondence is what indicates causal correspondence.
+            simulatedDataPoints(i) = simulatedDataPoint; // Put the generated visible value in the exact same position as the hidden value. This positional correspondence is what indicates causal or temporal correspondence.
 
         }
 

@@ -10,6 +10,10 @@
 #include "brain/Brain.h"
 #include <ctime>
 
+/**
+ * Class representing a Bayesian network. Based on a
+ * directed, acyclic graph.
+ */
 class BayesianNetwork {
 
     Graph<std::string, arma::mat> graph;
