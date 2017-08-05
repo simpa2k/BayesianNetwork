@@ -42,6 +42,26 @@ bool BayesianNetwork::record(std::string factor1, std::string factor2, arma::uwo
 
 }
 
+bool BayesianNetwork::record(std::string factor1, std::string factor2, arma::uword factor1State, arma::uword factor2State) {
+
+    arma::mat values;
+    arma::mat* probabilities = graph.getWeight(factor1, factor2);
+
+    if (probabilities != NULL) {
+        values = *probabilities;
+    } else {
+        values = arma::mat(numStates, numStates, arma::fill::zeros);
+    }
+
+    ++values(factor2State, factor1State);
+
+    bool result = graph.connect(factor1, factor2, values);
+    delete probabilities;
+
+    return result;
+
+}
+
 /**
  * Method for getting the probabilities for all the states of a hidden node,
  * given that a series of visible nodes take certain values. The thought is
@@ -238,4 +258,5 @@ BayesianNetwork::computeThetaVisible(arma::rowvec dataHidden, std::map<std::stri
     return histogramByNode;
 
 }
+
 

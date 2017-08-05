@@ -27,7 +27,9 @@ public:
     arma::uword getNumStates() const;
 
     bool add(std::string);
+
     bool record(std::string, std::string, arma::uword, arma::uword, double);
+    bool record(std::string, std::string, arma::uword, arma::uword);
 
     arma::mat get(std::string, std::map<std::string, arma::uword>);
 

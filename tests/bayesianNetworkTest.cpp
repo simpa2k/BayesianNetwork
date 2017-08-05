@@ -31,10 +31,21 @@ TEST_CASE("Add factor", "[bayesNet]") {
 
 TEST_CASE("Connect factors", "[bayesNet]") {
 
-    BayesianNetwork* bayesNet = new BayesianNetwork();
+    auto* bayesNet = new BayesianNetwork();
     addFactors(bayesNet);
 
     REQUIRE(bayesNet->record("T", "E0", 0, 0, 0.33));
+
+}
+
+TEST_CASE("Connect factors with histogram", "[bayesNet]") {
+
+    auto* bayesNet = new BayesianNetwork(3);
+    addFactors(bayesNet);
+
+    REQUIRE(bayesNet->record("T", "E0", 0, 0));
+    REQUIRE(bayesNet->record("T", "E0", 1, 0));
+    REQUIRE(bayesNet->record("T", "E0", 2, 0));
 
 }
 
