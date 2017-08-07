@@ -62,6 +62,31 @@ bool BayesianNetwork::record(std::string factor1, std::string factor2, arma::uwo
 
 }
 
+
+bool BayesianNetwork::erase(std::string factor1, std::string factor2, arma::uword factor1State, arma::uword factor2State) {
+
+    arma::mat values;
+    arma::mat* probabilities = graph.getWeight(factor1, factor2);
+
+    if (probabilities == NULL) {
+        return false;
+    }
+
+    values = *probabilities;
+
+    if (values(factor2State, factor1State) == 0) {
+        return false;
+    }
+
+    --values(factor2State, factor1State);
+
+    bool result = graph.connect(factor1, factor2, values);
+    delete probabilities;
+
+    return result;
+
+}
+
 /**
  * Method for getting the probabilities for all the states of a hidden node,
  * given that a series of visible nodes take certain values. The thought is
@@ -168,6 +193,46 @@ std::map<std::string, arma::rowvec> BayesianNetwork::simulateVisibleData(const s
 
 }
 
+std::map<std::string, arma::rowvec> BayesianNetwork::simulateVisibleData(std::map<std::string, arma::mat> thetaVisible,
+                                                                          std::string hiddenNode,
+                                                                          arma::rowvec hiddenData,
+                                                                          int samples) {
+
+    std::map<std::string, arma::rowvec> dataVisible;
+
+    std::random_device rd;
+    std::mt19937 eng(rd());
+
+    for (auto &&node : thetaVisible) { // For each visible node.
+
+        arma::rowvec simulatedDataPoints(samples);
+
+        for (int i = 0; i < hiddenData.size(); ++i) { // For each hidden data point.
+
+            double dataPoint = hiddenData(i);
+
+            /*
+             * The weight of each edge between the hidden and the
+             * visible nodes is a matrix of probabilities. The value
+             * of the hidden node is taken as a positional indicator
+             * of which column of the matrix to look at.
+             */
+            arma::colvec col = node.second.col(dataPoint); // Pick out the column.
+
+            std::discrete_distribution<> dist(col.begin(), col.end()); // Create a distribution from the set of probabilities contained in the column by providing an iterator.
+
+            int simulatedDataPoint = dist(eng); // Generate the value.
+            simulatedDataPoints(i) = simulatedDataPoint; // Put the generated visible value in the exact same position as the hidden value. This positional correspondence is what indicates causal or temporal correspondence.
+
+        }
+
+        dataVisible.insert(std::pair<std::string, arma::rowvec>(node.first, simulatedDataPoints)); // Insert the simulated data points under the key provided.
+
+    }
+    return dataVisible;
+
+}
+
 arma::uword BayesianNetwork::getNumStates() const {
     return numStates;
 }
@@ -244,6 +309,32 @@ BayesianNetwork::computeThetaVisible(arma::rowvec dataHidden, std::map<std::stri
          * of data points in the column to get the probability.
          */
         item.second.each_col([&dataHidden] (arma::vec& column) {
+            column /= (float) arma::accu(column);
+        });
+
+        /*
+         * Fix points where division by zero has occurred.
+         */
+        item.second.transform([] (double val) {
+            return std::isnan(val) ? double(0) : val;
+        });
+    }
+
+    return histogramByNode;
+
+}
+
+std::map<std::string, arma::mat> BayesianNetwork::computeThetaVisible(std::string hiddenNode) {
+
+    std::map<std::string, arma::mat> histogramByNode = graph.getWeights(hiddenNode);
+
+    for (auto &&item : histogramByNode) {
+
+        /*
+         * Divide each column, element-wise, with the total number
+         * of data points in the column to get the probability.
+         */
+        item.second.each_col([] (arma::vec& column) {
             column /= (float) arma::accu(column);
         });
 

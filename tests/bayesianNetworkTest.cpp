@@ -49,6 +49,30 @@ TEST_CASE("Connect factors with histogram", "[bayesNet]") {
 
 }
 
+TEST_CASE("Erase", "[bayesNet") {
+
+    auto* bayesNet = new BayesianNetwork(3);
+
+    REQUIRE(!bayesNet->erase("T", "E0", 0, 0));
+
+    addFactors(bayesNet);
+
+    REQUIRE(!bayesNet->erase("T", "E0", 0, 0));
+
+    REQUIRE(bayesNet->record("T", "E0", 0, 0));
+    REQUIRE(bayesNet->record("T", "E0", 1, 0));
+    REQUIRE(bayesNet->record("T", "E0", 2, 0));
+
+    REQUIRE(bayesNet->erase("T", "E0", 0, 0));
+    REQUIRE(bayesNet->erase("T", "E0", 1, 0));
+    REQUIRE(bayesNet->erase("T", "E0", 2, 0));
+
+    REQUIRE(!bayesNet->erase("T", "E0", 0, 0));
+    REQUIRE(!bayesNet->erase("T", "E0", 1, 0));
+    REQUIRE(!bayesNet->erase("T", "E0", 2, 0));
+
+}
+
 TEST_CASE("Get probabilities", "[bayesNet]") {
 
     BayesianNetwork* bayesNet = new BayesianNetwork();
@@ -149,4 +173,57 @@ TEST_CASE("Simulate data according to custom distributions", "[bayesNet") {
             std::map<std::string, arma::mat> thetaVisible = bayesNet->computeThetaVisible(dataHidden, visibleData);
         }
     }
+
+    SECTION("Simulate visible data in and save it in data structure") {
+
+        addFactors(bayesNet);
+
+        arma::mat e0 = { {0.33, 0.40, 0.50},
+                         {0.33, 0.25, 0.20},
+                         {0.34, 0.35, 0.30} };
+
+        arma::mat e1 = { {0.30, 0.60, 0.70},
+                         {0.65, 0.20, 0.10},
+                         {0.05, 0.20, 0.20} };
+
+        std::map<std::string, arma::mat> thetaVisible = { {"E0", e0},
+                                                          {"E1", e1} };
+
+        std::map<std::string, arma::rowvec> dataVisible = bayesNet->simulateVisibleData(thetaVisible, "T", dataHidden, SAMPLES);
+
+        SECTION("Compute theta visible") {
+            std::map<std::string, arma::mat> calculatedThetaVisible = bayesNet->computeThetaVisible("T");
+        }
+    }
+}
+
+TEST_CASE("Actual runs", "[bayesNet") {
+
+    auto* bayesNet = new BayesianNetwork(3);
+    addFactors(bayesNet);
+
+    arma::mat e0 = { {0.33, 0.40, 0.50},
+                     {0.33, 0.25, 0.20},
+                     {0.34, 0.35, 0.30} };
+
+    arma::mat e1 = { {0.30, 0.60, 0.70},
+                     {0.65, 0.20, 0.10},
+                     {0.05, 0.20, 0.20} };
+
+    std::map<std::string, arma::mat> thetaVisible = { {"E0", e0},
+                                                      {"E1", e1} };
+
+    const std::vector<double> THETA_HIDDEN = {0.25, 0.40, 0.35};
+    const int SAMPLES = 10000;
+
+    arma::rowvec dataHidden = bayesNet->simulateHiddenData(THETA_HIDDEN, SAMPLES);
+    std::map<std::string, arma::rowvec> dataVisible = bayesNet->simulateVisibleData(thetaVisible, "T", dataHidden, SAMPLES);
+
+    dataHidden.imbue( [&]() { return rand() % 2; } );
+
+    arma::rowvec thetaHidden = bayesNet->computeThetaHidden(dataHidden);
+    thetaVisible = bayesNet->computeThetaVisible(dataHidden, dataVisible);
+
+    std::cout << thetaHidden << std::endl;
+
 }
