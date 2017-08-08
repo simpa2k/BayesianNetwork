@@ -199,6 +199,23 @@ TEST_CASE("Simulate data according to custom distributions", "[bayesNet") {
 
 TEST_CASE("Actual runs", "[bayesNet") {
 
+    /*
+     * 1.  Simulate hidden data
+     * 2.  Simulate visible data using hidden data
+     * 3.  Generate random hidden data
+     *
+     * 4.  Compute theta hidden using random hidden data
+     * 5.  Compute theta visible using random hidden data and actual visible data
+     *
+     * 6.  Impute hidden node using actual visible data, the random theta hidden and partly random theta visible.
+     * 7.  Generate new hidden data using the results of the above step.
+     *
+     * 8.  Compute theta hidden using the new, slightly improved hidden data.
+     * 9.  Compute theta visible using the new, slightly improved hidden data and actual visible data.
+     *
+     * 10. Repeat steps 6 - 9.
+     */
+
     auto* bayesNet = new BayesianNetwork(3);
     addFactors(bayesNet);
 
@@ -213,16 +230,42 @@ TEST_CASE("Actual runs", "[bayesNet") {
     std::map<std::string, arma::mat> thetaVisible = { {"E0", e0},
                                                       {"E1", e1} };
 
-    const std::vector<double> THETA_HIDDEN = {0.25, 0.40, 0.35};
+    const std::vector<double> THETA_HIDDEN = {0.15, 0.50, 0.35};
     const int SAMPLES = 10000;
 
     arma::rowvec dataHidden = bayesNet->simulateHiddenData(THETA_HIDDEN, SAMPLES);
     std::map<std::string, arma::rowvec> dataVisible = bayesNet->simulateVisibleData(thetaVisible, "T", dataHidden, SAMPLES);
 
-    dataHidden.imbue( [&]() { return rand() % 2; } );
+    arma::mat final = arma::mat(SAMPLES, THETA_HIDDEN.size());
+
+    arma::rowvec randomDist = arma::rowvec(THETA_HIDDEN.size(), arma::fill::randu);
+    dataHidden = bayesNet->simulateHiddenData(randomDist, dataHidden.size());
 
     arma::rowvec thetaHidden = bayesNet->computeThetaHidden(dataHidden);
     thetaVisible = bayesNet->computeThetaVisible(dataHidden, dataVisible);
+
+    for (int j = 0; j < 800; ++j) {
+
+        for (int i = 0; i < SAMPLES; ++i) {
+
+            arma::mat tV = arma::mat(dataVisible.size(), THETA_HIDDEN.size());
+
+            int count = 0;
+
+            for (auto &&node : dataVisible) {
+                tV.row(count++) = thetaVisible[node.first].row(node.second(i));
+            }
+
+            final.row(i) = bayesNet->imputeHiddenNode(thetaHidden, tV);
+
+        }
+
+        dataHidden = bayesNet->simulateHiddenData(arma::mean(final), final.n_rows);
+
+        thetaHidden = bayesNet->computeThetaHidden(dataHidden);
+        thetaVisible = bayesNet->computeThetaVisible(dataHidden, dataVisible);
+
+    }
 
     std::cout << thetaHidden << std::endl;
 

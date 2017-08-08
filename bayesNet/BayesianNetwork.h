@@ -35,6 +35,8 @@ public:
     arma::mat get(std::string, std::map<std::string, arma::uword>);
 
     arma::rowvec simulateHiddenData(std::vector<double>, int);
+    arma::rowvec simulateHiddenData(arma::rowvec, int);
+
     std::map<std::string, arma::rowvec> simulateVisibleData(std::string, arma::rowvec, int);
     std::map<std::string, arma::rowvec> simulateVisibleData(std::map<std::string, arma::mat>, std::string, arma::rowvec, int);
 
@@ -42,6 +44,8 @@ public:
 
     std::map<std::string, arma::mat> computeThetaVisible(arma::rowvec dataHidden, std::map<std::string, arma::rowvec> dataVisible);
     std::map<std::string, arma::mat> computeThetaVisible(std::string);
+
+    arma::rowvec imputeHiddenNode(arma::rowvec, arma::mat);
 
 };
 

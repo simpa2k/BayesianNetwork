@@ -4,6 +4,7 @@
 
 #include "armadillo"
 #include "BayesianNetwork.h"
+#include "utilities/utilities.h"
 #include <random>
 #include <iostream>
 
@@ -128,6 +129,21 @@ arma::mat BayesianNetwork::get(std::string hidden, std::map<std::string, arma::u
  * @return A set of generated values.
  */
 arma::rowvec BayesianNetwork::simulateHiddenData(const std::vector<double> thetaHidden, const int samples) {
+
+    std::discrete_distribution<> dist(thetaHidden.begin(), thetaHidden.end()); // Create a custom distribution by providing an iterator to the list.
+    std::mt19937 eng(std::time(0)); // Initiate a mersenne twister.
+
+    arma::rowvec dataHidden(samples);
+
+    for (int i = 0; i < samples; ++i) { // Generate the data points
+        dataHidden(i) = dist(eng);
+    }
+
+    return dataHidden;
+
+}
+
+arma::rowvec BayesianNetwork::simulateHiddenData(arma::rowvec thetaHidden, int samples) {
 
     std::discrete_distribution<> dist(thetaHidden.begin(), thetaHidden.end()); // Create a custom distribution by providing an iterator to the list.
     std::mt19937 eng(std::time(0)); // Initiate a mersenne twister.
@@ -349,5 +365,54 @@ std::map<std::string, arma::mat> BayesianNetwork::computeThetaVisible(std::strin
     return histogramByNode;
 
 }
+
+arma::rowvec BayesianNetwork::imputeHiddenNode(arma::rowvec thetaHidden, arma::mat thetaVisible) {
+
+    arma::rowvec final = arma::rowvec(thetaHidden.size());
+
+    for (arma::uword i = 0; i < thetaVisible.n_cols; ++i) {
+
+        arma::mat copy = thetaVisible;
+        copy.shed_col(i);
+
+        arma::mat toBeSummed = arma::mat(1, thetaHidden.size());
+
+        /*
+         * Use everything that is not the current hidden probability
+         * as a collective "not true" value but be sure to use the
+         * theta hidden associated with each non-true column.
+         */
+        for (arma::uword j = 0; j < copy.n_cols; ++j) {
+
+            arma::mat column = arma::trans(copy.col(j));
+
+            double correctThetaHidden = thetaHidden(((i + 1) + j) % thetaHidden.size());
+            arma::mat probVis0Unnorm = correctThetaHidden * arma::prod(column, 1); // i will never be greater than the number of hidden states, since the columns in thetaVisible in fact represent those states.
+
+            toBeSummed.col(j) = probVis0Unnorm;
+            
+        }
+
+        /*
+         * Use the current hidden probability as the sole "true value".
+         * Then repeat the process so that every hidden probability
+         * has been treated as the true value.
+         */
+        arma::mat column = arma::trans(thetaVisible.col(i));
+
+        arma::mat probVis1Unnorm = thetaHidden(i) * arma::prod(column, 1); // i will never be greater than the number of hidden states, since the columns in thetaVisible in fact represent those states.
+        toBeSummed.tail_cols(1) = probVis1Unnorm;
+
+        arma::mat hidden = probVis1Unnorm / sum(toBeSummed, 1); // sum rows
+
+        final.col(i) = hidden;
+
+
+    }
+
+    return final;
+
+}
+
 
 
