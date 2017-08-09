@@ -244,7 +244,7 @@ TEST_CASE("Actual runs", "[bayesNet") {
     arma::rowvec thetaHidden = bayesNet->computeThetaHidden(dataHidden);
     thetaVisible = bayesNet->computeThetaVisible(dataHidden, dataVisible);
 
-    for (int j = 0; j < 800; ++j) {
+    for (int j = 0; j < 400; ++j) {
 
         for (int i = 0; i < SAMPLES; ++i) {
 
@@ -260,9 +260,11 @@ TEST_CASE("Actual runs", "[bayesNet") {
 
         }
 
-        dataHidden = bayesNet->simulateHiddenData(arma::mean(final), final.n_rows);
+        /*dataHidden = bayesNet->simulateHiddenData(arma::mean(final), final.n_rows);
 
-        thetaHidden = bayesNet->computeThetaHidden(dataHidden);
+        thetaHidden = bayesNet->computeThetaHidden(dataHidden);*/
+
+        dataHidden = bayesNet->simulateHiddenData(final);
         thetaVisible = bayesNet->computeThetaVisible(dataHidden, dataVisible);
 
     }

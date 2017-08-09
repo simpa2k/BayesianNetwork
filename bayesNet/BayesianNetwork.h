@@ -36,6 +36,7 @@ public:
 
     arma::rowvec simulateHiddenData(std::vector<double>, int);
     arma::rowvec simulateHiddenData(arma::rowvec, int);
+    arma::rowvec simulateHiddenData(arma::mat);
 
     std::map<std::string, arma::rowvec> simulateVisibleData(std::string, arma::rowvec, int);
     std::map<std::string, arma::rowvec> simulateVisibleData(std::map<std::string, arma::mat>, std::string, arma::rowvec, int);

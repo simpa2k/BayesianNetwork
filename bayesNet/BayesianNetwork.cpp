@@ -158,6 +158,23 @@ arma::rowvec BayesianNetwork::simulateHiddenData(arma::rowvec thetaHidden, int s
 
 }
 
+arma::rowvec BayesianNetwork::simulateHiddenData(arma::mat thetaHidden) {
+
+    std::mt19937 eng(std::time(0)); // Initiate a mersenne twister.
+    arma::rowvec dataHidden(thetaHidden.n_rows);
+
+    int counter = 0;
+    thetaHidden.each_row([&counter, &dataHidden, &eng] (rowvec& row) {
+
+        std::discrete_distribution<> dist(row.begin(), row.end()); // Create a custom distribution by providing an iterator to the row.
+        dataHidden(counter++) = dist(eng);
+
+    });
+
+    return dataHidden;
+
+}
+
 /**
  * Utility method to simulate visible data based on a set of hidden data.
  * Requires data measured from a hidden node to determine which probability
@@ -387,7 +404,7 @@ arma::rowvec BayesianNetwork::imputeHiddenNode(arma::rowvec thetaHidden, arma::m
             arma::mat column = arma::trans(copy.col(j));
 
             double correctThetaHidden = thetaHidden(((i + 1) + j) % thetaHidden.size());
-            arma::mat probVis0Unnorm = correctThetaHidden * arma::prod(column, 1); // i will never be greater than the number of hidden states, since the columns in thetaVisible in fact represent those states.
+            arma::mat probVis0Unnorm = correctThetaHidden * arma::prod(column, 1);
 
             toBeSummed.col(j) = probVis0Unnorm;
             
@@ -406,7 +423,6 @@ arma::rowvec BayesianNetwork::imputeHiddenNode(arma::rowvec thetaHidden, arma::m
         arma::mat hidden = probVis1Unnorm / sum(toBeSummed, 1); // sum rows
 
         final.col(i) = hidden;
-
 
     }
 
