@@ -230,7 +230,7 @@ TEST_CASE("Actual runs", "[bayesNet") {
     std::map<std::string, arma::mat> thetaVisible = { {"E0", e0},
                                                       {"E1", e1} };
 
-    const std::vector<double> THETA_HIDDEN = {0.15, 0.50, 0.35};
+    const std::vector<double> THETA_HIDDEN = {0.25, 0.40, 0.35};
     const int SAMPLES = 10000;
 
     arma::rowvec dataHidden = bayesNet->simulateHiddenData(THETA_HIDDEN, SAMPLES);
@@ -243,6 +243,8 @@ TEST_CASE("Actual runs", "[bayesNet") {
 
     arma::rowvec thetaHidden = bayesNet->computeThetaHidden(dataHidden);
     thetaVisible = bayesNet->computeThetaVisible(dataHidden, dataVisible);
+
+    std::cout << thetaHidden << std::endl;
 
     for (int j = 0; j < 400; ++j) {
 
@@ -265,6 +267,8 @@ TEST_CASE("Actual runs", "[bayesNet") {
         thetaHidden = bayesNet->computeThetaHidden(dataHidden);*/
 
         dataHidden = bayesNet->simulateHiddenData(final);
+
+        thetaHidden = bayesNet->computeThetaHidden(dataHidden);
         thetaVisible = bayesNet->computeThetaVisible(dataHidden, dataVisible);
 
     }
